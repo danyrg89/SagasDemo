@@ -1,0 +1,43 @@
+version: '3.4'
+
+services:
+  products:
+    image: ${DOCKER_REGISTRY-}products
+    container_name: Products
+    build:
+      context: .
+      dockerfile: Products/Dockerfile
+
+  orders:
+    image: ${DOCKER_REGISTRY-}orders
+    container_name: Orders
+    build:
+      context: .
+      dockerfile: Orders/Dockerfile
+
+  eshop-mq:
+    image: rabbitmq:3.12.6-management
+    container_name: rabbitmq
+    hostname: eshop-queue
+    ports:
+      - 5672:5672
+      - 15672:15672
+    environment:
+        RABBITMQ_DEFAULT_USER: guest
+        RABBITMQ_DEFAULT_PASS: guest
+    volumes:
+      - ./docker/rabbitmq/data:/var/lib/rabbitmq
+      - ./docker/rabbitmq/log:/var/log/rabbitmq
+
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2019-CU3-ubuntu-18.04
+    user: '0:0'
+    container_name: sqlserver2019
+    ports:
+      - 1433:1433
+    environment:
+      ACCEPT_EULA: Y
+      SA_PASSWORD: 'Daniel.1989'
+      MSSQL_PID: Express
+    volumes:
+      - ./docker/sqlserver/data:/var/opt/mssql/data
