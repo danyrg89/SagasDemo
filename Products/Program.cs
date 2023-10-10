@@ -1,5 +1,3 @@
-using Rebus.Config;
-using Rebus.Routing.TypeBased;
 
 namespace Products
 {
@@ -17,18 +15,18 @@ namespace Products
             builder.Services.AddSwaggerGen();
 
             // Rebus
-            builder.Services.AddRebus(rebus => rebus
-                .Routing(r => r.TypeBased().MapAssemblyOf<Program>("eshop-queue"))
-                .Transport(t =>
-                    t.UseRabbitMq(
-                        builder.Configuration.GetConnectionString("MessageBroker"),
-                        "eshop-queue"))
-                .Sagas(s => s.StoreInSqlServer(
-                        builder.Configuration.GetConnectionString("Database"),
-                        "Sagas",
-                        "Sagas_Indexes"
-                    )
-                ));
+            //builder.Services.AddRebus(rebus => rebus
+            //    .Routing(r => r.TypeBased().MapAssemblyOf<Program>("eshop-queue"))
+            //    .Transport(t =>
+            //        t.UseRabbitMq(
+            //            builder.Configuration.GetConnectionString("MessageBroker"),
+            //            "eshop-queue"))
+            //    .Sagas(s => s.StoreInSqlServer(
+            //            builder.Configuration.GetConnectionString("Database"),
+            //            "Sagas",
+            //            "Sagas_Indexes"
+            //        )
+            //    ));
 
             var app = builder.Build();
 

@@ -17,7 +17,7 @@ services:
 
   eshop-mq:
     image: rabbitmq:3.12.6-management
-    container_name: rabbitmq
+    container_name: eshop-mq
     hostname: eshop-queue
     ports:
       - 5672:5672
