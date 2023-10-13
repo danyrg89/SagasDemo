@@ -1,4 +1,5 @@
-﻿using EventBus.Events.OrderEvents;
+﻿using EventBus.Consts;
+using EventBus.Events.OrderEvents;
 using EventBus.Messages.NotificationMessages;
 using EventBus.Messages.OrderMessages;
 using MassTransit;
@@ -27,21 +28,35 @@ namespace Orders.Sagas
 
         private State OrderCreated { get; set; }
 
-        private State PaymentProcessed { get; set; }
+        //private State PaymentProcessed { get; set; }
 
 
         public CreateOrderStateMachine()
         {
             InstanceState(x => x.CurrentState);
 
+            State(() => PlacingOrder);
+            State(() => OrderCreated);
+
             Initially(
                 When(StartOrderCreationSagaMessage)
                     .Then(context => {
+                        context.Saga.OrderId = context.Message.OrderId;
+                        context.Saga.CorrelationId = context.Message.CorrelationId;
                         Console.WriteLine("Message received!!");
 
                     })
-                    .Send(context => new CreateOrderMessage(context.Message.CorrelationId, context.Message.OrderId))
+                    .Send(new Uri($"queue:{QueueConst.CreateOrderQueueName}"),
+                            context => new CreateOrderMessage(context.Message.CorrelationId, context.Message.OrderId))
                     .TransitionTo(PlacingOrder));
+
+            During(PlacingOrder,
+                When(OrderCreatedEvent)
+                    .Then(context => {
+                        Console.WriteLine("Order Created Event!");
+                    })
+                    .TransitionTo(OrderCreated));
+
         }
     }
 }

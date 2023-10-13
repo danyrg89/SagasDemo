@@ -32,34 +32,36 @@ builder.Services.AddMassTransit(x =>
         opt.ConcurrencyMode = ConcurrencyMode.Optimistic;
     });
 
-    x.AddBus(provider => Bus.Factory.CreateUsingRabbitMq(configure =>
-    {
-        configure.Host(new Uri(configuration["RabbitMQ:Host"]), "/", host =>
-            {
-                host.Username(configuration["RabbitMQ:User"]);
-                host.Password(configuration["RabbitMQ:Password"]);
-            });
-
-        configure.ReceiveEndpoint(QueueConst.CreateOrderQueueName, e => { e.ConfigureSaga<CreateOrderStateMachineInstance>(provider); });
-
-    }));
-
-
-    //x.UsingRabbitMq((context, cfg) =>
+    //x.AddBus(provider => Bus.Factory.CreateUsingRabbitMq(configure =>
     //{
-    //    Console.WriteLine("MESSAGE BROKER:" + configuration.GetConnectionString("MessageBroker"));
-    //    cfg.Host(new Uri(configuration["RabbitMQ:Host"]), "/", host =>
-    //    {
-    //        host.Username(configuration["RabbitMQ:User"]);
-    //        host.Password(configuration["RabbitMQ:Password"]);
-    //    });
+    //    configure.Host(new Uri(configuration["RabbitMQ:Host"]), "/", host =>
+    //        {
+    //            host.Username(configuration["RabbitMQ:User"]);
+    //            host.Password(configuration["RabbitMQ:Password"]);
+    //        });
 
-    //    cfg.ReceiveEndpoint(QueueConst.CreateOrderQueueName, x =>
-    //    {
-    //        x.ConfigureConsumer<CreateOrderEventConsumer>(context);
-    //    });
+    //    configure.ReceiveEndpoint(QueueConst.CreateOrderQueueName, e => { e.ConfigureSaga<CreateOrderStateMachineInstance>(provider); });
 
-    //});
+    //}));
+
+
+    x.UsingRabbitMq((context, transport) =>
+    {
+        transport.Host(new Uri(configuration["RabbitMQ:Host"]), "/", host =>
+        {
+            host.Username(configuration["RabbitMQ:User"]);
+            host.Password(configuration["RabbitMQ:Password"]);
+        });
+
+        transport.ReceiveEndpoint(QueueConst.CreateOrderQueueName, x =>
+        {
+            x.ConfigureSaga<CreateOrderStateMachineInstance>(context);
+            x.ConfigureConsumer<CreateOrderEventConsumer>(context);
+        });
+
+
+        transport.ConfigureEndpoints(context);
+    });
 });
 
 
