@@ -8,6 +8,12 @@ namespace EventBus.Consts
 {
     public class QueueConst
     {
-        public const string CreateOrderQueueName = "CreateOrderQueue";
+        public const string CreateOrderQueue = "CreateOrderQueue";
+
+        public const string StartOrderCreationQueue = "StartOrderCreationQueue";
+
+        public const string ReserveProductsQueue = "ReserveProductsQueue";
+
+        public const string OrderCompletedQueue = "OrderCompletedQueue";
     }
 }

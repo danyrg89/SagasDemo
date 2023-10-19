@@ -1,4 +1,5 @@
-﻿using MassTransit;
+﻿using EventBus.Entities;
+using MassTransit;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace EventBus.EventsProductEvents
 {
-    public record ProductsReservedEvent(Guid CorrelationId, Guid OrderId) : CorrelatedBy<Guid>;
+    public record ProductsReservedEvent(Guid CorrelationId, Order Order) : CorrelatedBy<Guid>;
 
-    public record ProductsReservationFailEvent(Guid CorrelationId, Guid OrderId) : CorrelatedBy<Guid>;
+    public record ProductsReservationFailEvent(Guid CorrelationId, Order Order) : CorrelatedBy<Guid>;
 }

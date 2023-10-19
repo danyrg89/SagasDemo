@@ -1,4 +1,8 @@
 
+using EventBus.Consts;
+using MassTransit;
+using Products.Consumers;
+
 namespace Products
 {
     public class Program
@@ -15,18 +19,29 @@ namespace Products
             builder.Services.AddSwaggerGen();
 
             // Rebus
-            //builder.Services.AddRebus(rebus => rebus
-            //    .Routing(r => r.TypeBased().MapAssemblyOf<Program>("eshop-queue"))
-            //    .Transport(t =>
-            //        t.UseRabbitMq(
-            //            builder.Configuration.GetConnectionString("MessageBroker"),
-            //            "eshop-queue"))
-            //    .Sagas(s => s.StoreInSqlServer(
-            //            builder.Configuration.GetConnectionString("Database"),
-            //            "Sagas",
-            //            "Sagas_Indexes"
-            //        )
-            //    ));
+            builder.Services.AddMassTransit(x =>
+            {
+                x.AddConsumer<ReserveProductsConsumer>();
+
+                var configuration = builder.Configuration;
+
+                x.UsingRabbitMq((context, transport) =>
+                {
+                    transport.Host(new Uri(configuration["RabbitMQ:Host"]), "/", host =>
+                    {
+                        host.Username(configuration["RabbitMQ:User"]);
+                        host.Password(configuration["RabbitMQ:Password"]);
+                    });
+
+                    transport.ReceiveEndpoint(QueueConst.ReserveProductsQueue, x =>
+                    {
+                        x.ConfigureConsumer<ReserveProductsConsumer>(context);
+                    });
+
+
+                    transport.ConfigureEndpoints(context);
+                });
+            });
 
             var app = builder.Build();
 

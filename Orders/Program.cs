@@ -14,10 +14,11 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddMassTransit(x =>
 {
-    x.AddConsumer<CreateOrderEventConsumer>();
 
     var configuration = builder.Configuration;
 
+    x.AddConsumer<CreateOrderMessageConsumer>();
+    x.AddConsumer<OrderCompletedMessageConsumer>();
 
     x.AddSagaStateMachine<CreateOrderStateMachine, CreateOrderStateMachineInstance>().EntityFrameworkRepository(opt =>
     {
@@ -32,19 +33,6 @@ builder.Services.AddMassTransit(x =>
         opt.ConcurrencyMode = ConcurrencyMode.Optimistic;
     });
 
-    //x.AddBus(provider => Bus.Factory.CreateUsingRabbitMq(configure =>
-    //{
-    //    configure.Host(new Uri(configuration["RabbitMQ:Host"]), "/", host =>
-    //        {
-    //            host.Username(configuration["RabbitMQ:User"]);
-    //            host.Password(configuration["RabbitMQ:Password"]);
-    //        });
-
-    //    configure.ReceiveEndpoint(QueueConst.CreateOrderQueueName, e => { e.ConfigureSaga<CreateOrderStateMachineInstance>(provider); });
-
-    //}));
-
-
     x.UsingRabbitMq((context, transport) =>
     {
         transport.Host(new Uri(configuration["RabbitMQ:Host"]), "/", host =>
@@ -53,15 +41,25 @@ builder.Services.AddMassTransit(x =>
             host.Password(configuration["RabbitMQ:Password"]);
         });
 
-        transport.ReceiveEndpoint(QueueConst.CreateOrderQueueName, x =>
+
+        transport.ReceiveEndpoint(QueueConst.StartOrderCreationQueue, x =>
         {
             x.ConfigureSaga<CreateOrderStateMachineInstance>(context);
-            x.ConfigureConsumer<CreateOrderEventConsumer>(context);
         });
 
+        transport.ReceiveEndpoint(QueueConst.CreateOrderQueue, x =>
+        {
+            x.ConfigureConsumer<CreateOrderMessageConsumer>(context);
+        });
 
-        transport.ConfigureEndpoints(context);
+        transport.ReceiveEndpoint(QueueConst.OrderCompletedQueue, x =>
+        {
+            x.ConfigureConsumer<OrderCompletedMessageConsumer>(context);
+        });
+
+        //transport.ConfigureEndpoints(context);
     });
+
 });
 
 
